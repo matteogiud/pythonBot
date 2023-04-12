@@ -1,5 +1,3 @@
-
-
 def parse_list(filename, delimiter=';', no_first=0) -> list:
     import csv
 

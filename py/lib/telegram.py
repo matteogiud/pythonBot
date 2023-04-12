@@ -1,6 +1,5 @@
 import requests
 
-
 class Telegram:
 
     def __init__(self, token):
@@ -19,8 +18,9 @@ class Telegram:
             for messaggio in responseJson["result"]:
                 messageList.append(messaggio)
                 offsetId = messaggio["update_id"]
+            offsetId+=1
             if setOffset:
-                requests.get(urlUpdate+"getUpdates", params={"offset": int(offsetId+1)})
+                requests.get(urlUpdate+"getUpdates", params={"offset": offsetId})
 
         except Exception as e:
             messageList = None
@@ -30,3 +30,6 @@ class Telegram:
 
     def sendMessage(self, message):
         urlSendMessage = self.url + "sendMessage"
+
+t = Telegram("5783533607:AAE-4_vA8BZn5PGRjBvREylshRCyt42nRBY")
+print(t.getUpdate())
