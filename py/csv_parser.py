@@ -30,7 +30,3 @@ def parse_dict(filename, delimiter=';', no_first=0) -> list:
             data.append(riga)
 
         return data
-
-
-open("pippo.txt", mode="w").write(
-    str(parse_dict("py\\anagrafica_impianti_attivi.csv", no_first=1)))

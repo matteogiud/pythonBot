@@ -1,4 +1,3 @@
-from py.lib.dataset import get_db_instance
+from lib.database_handle import *
 
 
-conn = get_db_instance(f"py\lib\data\createDB.sql")
