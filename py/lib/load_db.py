@@ -18,8 +18,8 @@ def download_files_from_internet():
             file.write(response.content)
 
 def load_db_from_local_files():
-    from csv_parser import parse_dict
-    from lib.database_handle import execute_insert_dict
+    from ..csv_parser import parse_dict
+    from database_handle import execute_insert_dict
 
 
     fuel_price_dict = parse_dict(f'{downloading_folder}fuel_price.csv', no_first=1)

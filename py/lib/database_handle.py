@@ -1,4 +1,4 @@
-from dataset import * # errore
+from dataset import Database # errore
 global db
 db = Database.getInstance()
 
