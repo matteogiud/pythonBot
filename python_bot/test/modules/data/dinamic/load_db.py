@@ -18,7 +18,7 @@ def download_files_from_internet():
             file.write(response.content)
 
 def load_db_from_local_files():
-    from ..csv_parser import parse_dict
+    from ..static.csv_parser import parse_dict
     from database_handle import execute_insert_dict
 
 
