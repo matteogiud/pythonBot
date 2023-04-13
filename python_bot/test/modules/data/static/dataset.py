@@ -3,8 +3,8 @@ from typing import Type
 
 class Database:    
     __instance = None
-    __db_name = 'py\lib\data\database.db'
-    __db_file_log = 'db_log.txt'
+    __db_name = 'python_bot\\test\\data\\database\\database.db'
+    __db_file_log = 'python_bot\\test\\data\\database\\logs\\db_log.txt'
     
     @staticmethod
     def getInstance() -> Type['Database']:
