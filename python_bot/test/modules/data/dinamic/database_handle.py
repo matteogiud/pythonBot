@@ -20,9 +20,12 @@ def execute_insert_dict(table_name: str, data: list, table_values_names: tuple, 
     conn.commit()
     
 def delete_all_records_from_table(table_name: str):
-    
+    from datetime import datetime
+    __db_deleting_logs = 'python_bot\\test\\data\\database\\logs\\db_delete_records.txt'
     conn = db.get_conn()
     
     conn.execute(f"DELETE FROM {table_name} WHERE 1")
     
     conn.commit()
+    
+    open(__db_deleting_logs, 'a').write(f'Delete all records from \'{table_name}\' table: {datetime.now()}\n')
