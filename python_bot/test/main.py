@@ -3,7 +3,9 @@ import time
 
 
 
-# t = get_thread()
-# t.start()
+t = get_thread()
+t.start()
 
-update_database()
+# update_database()
+# update_database()
+# update_database()

@@ -35,9 +35,9 @@ def load_db_from_local_files(delete_table_first=True):
     from csv_parser import parse_dict
     from database_handle import execute_insert_dict, delete_all_records_from_table
 
-    
     __db_fuel_price_log = 'python_bot\\test\\data\\database\\logs\\db_fuel_price.txt'
     __db_installations_log = 'python_bot\\test\\data\\database\\logs\\db_installations.txt'
+    
     
     fuel_price_dict = parse_dict(
         f'{downloading_folder}fuel_price.csv', no_first=1)
@@ -52,14 +52,12 @@ def load_db_from_local_files(delete_table_first=True):
         delete_all_records_from_table(table_name='fuel_prices')
 
     execute_insert_dict('installations', installations_dict, ('id', 'latitudine', 'longitudine', 'nome_impianto',
-                        'bandiera', 'indirizzo', 'comune', 'provincia'), ('idImpianto', 'Latitudine', 'Longitudine', 'Nome Impianto', 'Bandiera', 'Indirizzo', 'Comune', 'Provincia'))
+                        'bandiera', 'indirizzo', 'comune', 'provincia'), ('idImpianto', 'Latitudine', 'Longitudine', 'Nome Impianto', 'Bandiera', 'Indirizzo', 'Comune', 'Provincia'), __db_installations_log)
     print('Installations records loaded correctly')
-    open(__db_installations_log, 'a').write(f'Installations records loaded correctly: {datetime.now()}\n')
 
     execute_insert_dict('fuel_prices', fuel_price_dict, ('idImpianto',
-                        'tipoCarburante', 'prezzoSelf'), ('idImpianto', 'descCarburante', 'prezzo'))
+                        'tipoCarburante', 'prezzoSelf'), ('idImpianto', 'descCarburante', 'prezzo'), __db_fuel_price_log)
     print('Fuel prices records loaded correctly')
-    open(__db_fuel_price_log, 'a').write(f'Fuel prices records loaded correctly: {datetime.now()}\n')
 
 
 def clean_fuel_price_dict(fuel_price_dict: list) -> list:

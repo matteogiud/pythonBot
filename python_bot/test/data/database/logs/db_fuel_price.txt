@@ -2,3 +2,8 @@ Fuel prices records loaded correctly: 2023-04-13 17:25:56.410837
 Fuel prices records loaded correctly: 2023-04-13 17:27:19.602267
 Fuel prices records loaded correctly: 2023-04-13 17:32:57.830571
 Fuel prices records loaded correctly: 2023-04-15 09:31:55.129887
+fuel_prices records loaded correctly: 2023-04-15 10:40:50.038359
+fuel_prices records loaded correctly: 2023-04-15 10:42:54.365074
+fuel_prices records loaded correctly: 2023-04-15 10:44:26.102507
+fuel_prices records loaded correctly: 2023-04-15 10:45:06.331227
+fuel_prices records loaded correctly: 2023-04-15 10:45:38.528181
