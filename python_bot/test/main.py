@@ -1,8 +1,9 @@
-from modules.data.dinamic.thread_routine_updates_database import get_thread
+from modules.data.dinamic.thread_routine_updates_database import get_thread, update_database
 import time
 
-t = get_thread()
 
-t.start()
 
+# t = get_thread()
+
+# t.start()
 
