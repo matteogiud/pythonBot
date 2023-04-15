@@ -4,6 +4,6 @@ import time
 
 
 # t = get_thread()
-
 # t.start()
 
+update_database()

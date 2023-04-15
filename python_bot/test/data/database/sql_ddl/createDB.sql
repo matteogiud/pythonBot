@@ -1,6 +1,7 @@
 -- database: d:\giudici matteo\github\pythonBot\py\lib\data\database.db
 -- Premi il pulsante ▷ nell'angolo in alto a destra della finestra per eseguire l'intero file.
-DROP TABLE fuel_prices;
+
+DROP TABLE IF EXISTS installations;
 CREATE TABLE installations (
     id INTEGER PRIMARY KEY NOT NULL,
     nome_impianto TEXT CHECK(length(nome_impianto) <= 255),
@@ -12,6 +13,7 @@ CREATE TABLE installations (
     longitudine REAL NOT NULL
 );
 
+DROP TABLE IF EXISTS fuel_prices;
 CREATE TABLE fuel_prices (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     idImpianto INTEGER NOT NULL REFERENCES installations(id) ON UPDATE CASCADE ON DELETE CASCADE,
