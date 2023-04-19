@@ -24,7 +24,7 @@ class Database:
 
     def execute(self, query, params) -> list:
         """Esegue una query SQL"""
-        self.cursor.execute(query)
+        self.cursor.execute(query, params)
         self.conn.commit()
         return self.cursor.fetchall()        
     
