@@ -1,9 +1,20 @@
 import requests
+import threading
 
 class Telegram:
 
     def __init__(self, token):
-        self.url = f"https://api.telegram.org/bot{token}/"
+        self.url = f"https://api.telegram.org/bot{token}/"   
+        self.server_thread = threading.Thread(target=self.server_handle)
+
+    def server_handle(self):
+        # server handle request
+        pass
+
+
+    def start_server(self):
+        self.server_thread.start()
+         
 
     def getUpdate(self, params={}, setOffset=True):
         urlUpdate = self.url + "getUpdates"

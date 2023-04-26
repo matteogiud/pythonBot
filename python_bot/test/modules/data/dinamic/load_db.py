@@ -2,6 +2,7 @@ global downloading_folder
 downloading_folder = 'python_bot\\test\\data\\csv_files\\'
 
 
+
 def download_files_from_internet():
     import requests
     from datetime import datetime
@@ -33,6 +34,7 @@ def load_db_from_local_files(delete_table_first=True):
     sys.path.append(os.path.abspath(os.path.join(
         '..', 'pythonBot\\python_bot\\test\\modules\\data\\static\\')))
     from csv_parser import parse_dict
+    
     from database_handle import execute_insert_dict, delete_all_records_from_table
 
     __db_fuel_price_log = 'python_bot\\test\\data\\database\\logs\\db_fuel_price.txt'
