@@ -14,5 +14,15 @@ update_db_thread.start()
 my_telegram_token = "5783533607:AAE-4_vA8BZn5PGRjBvREylshRCyt42nRBY"
 my_telegram=Telegram(my_telegram_token)
 
+@my_telegram.handle_command("\start")
+def handle_start_command():
+    pass
+
+
+@my_telegram.handle_command("\help")
+def handle_start_command():
+    pass
+
+
 my_telegram.start_server()
 
