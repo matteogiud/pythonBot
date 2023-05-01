@@ -16,11 +16,7 @@ while True:
             for messaggio in responseJson["result"]:
                 text = messaggio["message"]["text"]
                 if str(messaggio["message"]["text"]).lower().find("ciao") != -1:
-                    text = "ciao anche a te!"
-                if str(messaggio["message"]["text"]).lower().find("lella") != -1:
-                    text = "lella sei bellissima!"
-                if str(messaggio["message"]["text"]).lower().find("matilde") != -1:
-                    text = "lella sei bellissima!"
+                    text = "ciao anche a te!"                
 
                 chatId = messaggio["message"]["chat"]["id"]
                 if requests.post(URL+servizioSend, data={"chat_id": chatId, "text": text}).status_code == 200:
