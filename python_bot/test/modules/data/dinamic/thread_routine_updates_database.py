@@ -16,7 +16,7 @@ def run_thread():
     already_executed = False
     while True:
         now = datetime.datetime.now()
-        if now.hour == 17 and now.minute == 32:
+        if now.hour == 8 and now.minute == 10:
             if not already_executed:
                 update_database()
                 already_executed = False

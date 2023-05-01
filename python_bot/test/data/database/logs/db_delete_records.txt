@@ -1,2 +1,14 @@
 Delete all records from 'installations' table: 2023-04-13 17:32:55.414449
 Delete all records from 'fuel_prices' table: 2023-04-13 17:32:55.433007
+Delete all records from 'installations' table: 2023-04-15 09:31:53.345978
+Delete all records from 'fuel_prices' table: 2023-04-15 09:31:53.393424
+Delete all records from 'installations' table: 2023-04-15 10:40:48.275264
+Delete all records from 'fuel_prices' table: 2023-04-15 10:40:48.306477
+Delete all records from 'installations' table: 2023-04-15 10:42:52.485734
+Delete all records from 'fuel_prices' table: 2023-04-15 10:42:52.500282
+Delete all records from 'installations' table: 2023-04-15 10:44:24.395299
+Delete all records from 'fuel_prices' table: 2023-04-15 10:44:24.419305
+Delete all records from 'installations' table: 2023-04-15 10:45:04.456381
+Delete all records from 'fuel_prices' table: 2023-04-15 10:45:04.481527
+Delete all records from 'installations' table: 2023-04-15 10:45:36.654694
+Delete all records from 'fuel_prices' table: 2023-04-15 10:45:36.686172
