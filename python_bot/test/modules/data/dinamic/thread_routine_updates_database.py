@@ -19,7 +19,7 @@ def run_thread():
         if now.hour == 8 and now.minute == 10:
             if not already_executed:
                 update_database()
-                already_executed = False
+                already_executed = True
         else:
             already_executed = False
 
