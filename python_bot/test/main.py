@@ -12,17 +12,18 @@ update_db_thread.start()
 
 #start my telegram server
 my_telegram_token = "5783533607:AAE-4_vA8BZn5PGRjBvREylshRCyt42nRBY"
-my_telegram=Telegram(my_telegram_token)
+bot=Telegram(my_telegram_token, is_async=True)
 
-@my_telegram.handle_command("\start")
-def handle_start_command():
-    pass
-
-
-@my_telegram.handle_command("\help")
-def handle_start_command():
-    pass
+@bot.handle_command("start")
+def handle_start_command(chatid, text):
+    bot.send_message(chat_id=chatid, text="Benvenuto")
 
 
-my_telegram.start_server()
+@bot.handle_command("help")
+def handle_start_command(chatid, text):
+    bot.send_message(chat_id=chatid, text="Ti aiuto")
+
+
+
+bot.start_server(debug=True)
 
