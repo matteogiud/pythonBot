@@ -38,11 +38,11 @@ def handle_set_fuel_command(message: TelegramMessage):
         message.chat.id, text, reply_markup=keyboard)
 
     # aggiunge un gestore riguardante quella chat e quella keyboard
-    # @bot.handle_callback_query(message.chat.id, keyboard)
-    # def set_fuel_callback_query(callback_query: TelegramCallbackQuery):
-    #     response = TelegramResponse(
-    #         message.chat_id, "Carburante settato correttamente!")
-    #     return response
+    @bot.handle_callback_query(message.chat.id, keyboard)
+    def set_fuel_callback_query(callback_query: TelegramCallbackQuery):
+        response = TelegramResponse(
+            callback_query.message.chat.id, "Carburante settato correttamente!")
+        return response
 
     return response
 

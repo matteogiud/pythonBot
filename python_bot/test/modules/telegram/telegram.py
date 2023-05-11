@@ -58,8 +58,13 @@ class TelegramChat:
 class TelegramReplyMarkup:
 
     def __init__(self, reply_markup: dict):
-        self.inline_keyboard_buttons = [InlineKeyboardButton(
-            text=button["text"], callback_data=button["callback_data"]) for button in reply_markup.get("inline_keyboard", [])]
+        inline_keyboard_buttons = reply_markup.get(
+            "inline_keyboard", [])
+        if len(inline_keyboard_buttons) > 0:
+            self.inline_keyboard_buttons = [InlineKeyboardButton(
+                text=button["text"], callback_data=button["callback_data"]) for button in inline_keyboard_buttons[0]]
+        else:
+            self.inline_keyboard_buttons = []
 
 
 class TelegramMessage:
@@ -133,24 +138,21 @@ class TelegramUpdate:  # il messaggio generale che arriva da un utente
         return self.callback_query is not None and self.message is None
 
 
-
-
 class TelegramResponse:
-    def __init__(self, chat_id: int, text: str, reply_markup: InlineKeyboardMarkup=None):
+    def __init__(self, chat_id: int, text: str, reply_markup: InlineKeyboardMarkup = None):
         self.chat_id = chat_id
         self.text = text
         self.reply_markup = reply_markup
-        
-    def get_data_json(self):
+
+    def get_data(self) -> dict:
         data = {}
         print("chat_id", self.chat_id)
-        data['chat_id'] = self.chat_id if self.chat_id is not None else None
-        data['text'] = self.text if self.text is not None else None
-        data['reply_markup'] = self.reply_markup.serialize_markup(
-        ) if self.reply_markup is not None else None
+        data['chat_id'] = self.chat_id
+        data['text'] = self.text
+        if self.reply_markup is not None:
+            data['reply_markup'] = self.reply_markup.serialize_markup()
 
-        return json.dumps(data)
-        
+        return data
 
 
 class Telegram:
@@ -180,43 +182,40 @@ class Telegram:
         """Add an handler for a callback query"""
         def decorator(func):
             self.callbacks_query_handlers[chat_id] = {
-                "func":func, "InlineKeyboardMarkup": InlineKeyboardMarkup}  # salvo l'id della chat e la keybord che gli è stata inviata
+                "func": func, "InlineKeyboardMarkup": InlineKeyboardMarkup}  # salvo l'id della chat e la keybord che gli è stata inviata
             return func
         return decorator
 
     def _handler_dispatcher(self, update_message: TelegramUpdate):
-        def dispatch(self, update_message: TelegramUpdate):
-            if update_message.is_a_message():  # se è un messaggio
-                if update_message.message.has_a_command():  # se la richiesta è un comando
-                    command = update_message.message.get_command()  # salvo il comando
-                    # se è presente un handler che gestisce il comando
-                    # prendo la funzione dal dizionario dei gestori
-                    func = self.commands_handlers.get(command)
-                    if func is not None:  # se c'è la funzione
-                        print(f"GET command {command}")
-                        # eseguo la funzione in un thread
-                        threading.Thread(
-                            target=self.command_handler_wrapper, args=(func, update_message.message)).start()
-                        return
+        if update_message.is_a_message():  # se è un messaggio
+            if update_message.message.has_a_command():  # se la richiesta è un comando
+                command = update_message.message.get_command()  # salvo il comando
+                # se è presente un handler che gestisce il comando
+                # prendo la funzione dal dizionario dei gestori
+                func = self.commands_handlers.get(command)
+                if func is not None:  # se c'è la funzione
+                    print(f"GET command {command}")
+                    # eseguo la funzione in un thread
+                    threading.Thread(
+                        target=self.command_handler_wrapper, args=(func, update_message.message)).start()
 
-            # se è una callback query quindi è una risposta ad una inline keyboard
-            elif update_message.is_a_callback_query():
-                print(f"GET callback query /{update_message.callback_query.data}")
-                handler_dict = self.callbacks_query_handlers.get(update_message.callback_query.message.chat.id)
-                if handler_dict is not None:
-                    func = handler_dict["func"]
-                    inlineKeyboardMarkup: InlineKeyboardMarkup = handler_dict["InlineKeyboardMarkup"]
-                    for inline_button in inlineKeyboardMarkup.inline_keyboard:
+        # se è una callback query quindi è una risposta ad una inline keyboard
+        elif update_message.is_a_callback_query():
+            print(
+                f"GET callback query /{update_message.callback_query.data}")
+            handler_dict = self.callbacks_query_handlers.get(
+                update_message.callback_query.message.chat.id)
+            if handler_dict is not None:
+                func = handler_dict["func"]
+                inlineKeyboardMarkup: InlineKeyboardMarkup = handler_dict["InlineKeyboardMarkup"]
+                for inline_keyboard_row in inlineKeyboardMarkup.inline_keyboard:
+                    for inline_button in inline_keyboard_row:
                         if inline_button.callback_data == update_message.callback_query.data:
-                            threading.Thread(target=self.callback_query_handler_wrapper, args=(handler_dict, update_message.callback_query)).start()
-                            return
-                    
+                            threading.Thread(target=self.callback_query_handler_wrapper, args=(
+                                func, update_message.callback_query)).start() # eseguo un thread che fa partire una funzione passata come funzione e la TelegramCallbackQuery
+                            break
 
-            self.update_offset = update_message.update_id + 1
-
-        # threading.Thread(target=dispatch, args=(
-        #     self, update_message)).start()
-        dispatch(self, update_message)
+        self.update_offset = update_message.update_id + 1
 
     def handle_command(self, command):
         """Add an handler for a command"""
@@ -240,11 +239,12 @@ class Telegram:
     #     return response.json()
 
     def send_response(self, response: TelegramResponse):
+        headers = {"Content-Type": "application/json"}
         url = self.url + "sendMessage"
 
-        data = response.get_data_json()
-        print("data: ", data)
-        result = requests.post(url, data=data)
+        payload = response.get_data()
+        print("payload", payload)
+        result = requests.post(url, headers=headers, data=json.dumps(payload))
         print(result.json())
 
     def get_updates(self) -> dict:
