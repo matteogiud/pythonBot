@@ -13,7 +13,7 @@ my_telegram_token = "5783533607:AAE-4_vA8BZn5PGRjBvREylshRCyt42nRBY"
 bot = Telegram(my_telegram_token, is_async=True)
 
 
-@bot.handle_command("start")
+@bot.handle_command("/start")
 def handle_start_command(message: TelegramMessage):
     text = f"""Benvenuto {message.user_from.username}!
         -Invia /setFuel per impostare il carburante della tua auto"""
@@ -23,9 +23,10 @@ def handle_start_command(message: TelegramMessage):
     return response
 
 
-@bot.handle_command("setFuel")
+@bot.handle_command("/setFuel")
 def handle_set_fuel_command(message: TelegramMessage):
-    text = f"""Scegli il carburante:"""
+
+    text = "Scegli il carburante:"
 
     button_benzina = InlineKeyboardButton("BENZINA", callback_data='benzina')
     button_diesel = InlineKeyboardButton("GASOLIO", callback_data='gasolio')
@@ -33,12 +34,20 @@ def handle_set_fuel_command(message: TelegramMessage):
     keyboard = InlineKeyboardMarkup(
         [[button_benzina, button_diesel, button_gpl]])
 
-    response: TelegramResponse = TelegramResponse(message.chat_id, text, reply_markup=keyboard)
+    response: TelegramResponse = TelegramResponse(
+        message.chat.id, text, reply_markup=keyboard)
+
+    # aggiunge un gestore riguardante quella chat e quella keyboard
+    # @bot.handle_callback_query(message.chat.id, keyboard)
+    # def set_fuel_callback_query(callback_query: TelegramCallbackQuery):
+    #     response = TelegramResponse(
+    #         message.chat_id, "Carburante settato correttamente!")
+    #     return response
 
     return response
 
 
-@bot.handle_command("help")
+@bot.handle_command("/help")
 def handle_start_command(message: TelegramMessage):
     text = """- /setFuel per impostare il carburante della tua auto"""
     response: TelegramResponse = TelegramResponse(
