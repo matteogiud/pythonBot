@@ -1,0 +1,50 @@
+{
+    "update_id": 206965077,
+    "callback_query": {
+        "id": "8406292841758931790",
+        "from": {
+            "id": 1957242573,
+            "is_bot": "False",
+            "first_name": "giud",
+            "username": "matteogiud",
+            "language_code": "en"
+        },
+        "message": {
+            "message_id": 150,
+            "from": {
+                "id": 5783533607,
+                "is_bot": "True",
+                "first_name": "cavallo",
+                "username": "cavallonebot"
+            },
+            "chat": {
+                "id": 1957242573,
+                "first_name": "giud",
+                "username": "matteogiud",
+                "type": "private"
+            },
+            "date": 1683826565,
+            "text": "Scegli il carburante:",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "BENZINA",
+                            "callback_data": "benzina"
+                        },
+                        {
+                            "text": "GASOLIO",
+                            "callback_data": "gasolio"
+                        },
+                        {
+                            "text": "GPL",
+                            "callback_data": "gpl"
+                        }
+                    ]
+                ]
+            }
+        },
+        "chat_instance": "-1322849694518281720",
+        "data": "gasolio"
+    }
+}

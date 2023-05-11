@@ -1,0 +1,28 @@
+{
+    "update_id": 206965075,
+    "message": {
+        "message_id": 152,
+        "from": {
+            "id": 1957242573,
+            "is_bot": "False",
+            "first_name": "giud",
+            "username": "matteogiud",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": 1957242573,
+            "first_name": "giud",
+            "username": "matteogiud",
+            "type": "private"
+        },
+        "date": 1683827097,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
