@@ -1,4 +1,4 @@
-from dataset import Database  # errore
+from ..static.dataset import Database  # errore
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(
@@ -6,6 +6,8 @@ sys.path.append(os.path.abspath(os.path.join(
 
 global db
 db = Database.getInstance()
+
+# data manager
 
 
 def execute_insert_dict(table_name: str, data: list, table_values_names: tuple, dict_values_names: tuple, db_table_log=None):
@@ -16,15 +18,15 @@ def execute_insert_dict(table_name: str, data: list, table_values_names: tuple, 
     field_str = ", ".join(table_values_names)
 
     placeholders_str = ", ".join(["?" for _ in range(len(table_values_names))])
+    with Database.lock:
+        for item in data:
+            values_str = ", ".join([str(item.get(field))
+                                for field in dict_values_names])
+            insert_query = f"INSERT INTO {table_name} ({field_str}) VALUES ({placeholders_str})"
+            values_tuple = tuple(item.get(field) for field in dict_values_names)
+            conn.execute(insert_query, values_tuple)
 
-    for item in data:
-        values_str = ", ".join([str(item.get(field))
-                               for field in dict_values_names])
-        insert_query = f"INSERT INTO {table_name} ({field_str}) VALUES ({placeholders_str})"
-        values_tuple = tuple(item.get(field) for field in dict_values_names)
-        conn.execute(insert_query, values_tuple)
-
-    conn.commit()
+        conn.commit()
 
     if not db_table_log is None:
         open(db_table_log, 'a').write(
@@ -35,10 +37,32 @@ def delete_all_records_from_table(table_name: str):
     from datetime import datetime
     __db_deleting_logs = 'python_bot\\test\\data\\database\\logs\\db_delete_records.txt'
     conn = db.get_conn()
-
-    conn.execute(f"DELETE FROM {table_name} WHERE 1")
-
-    conn.commit()
+    with Database.lock:
+        conn.execute(f"DELETE FROM {table_name} WHERE 1")
+        conn.commit()
 
     open(__db_deleting_logs, 'a').write(
         f'Delete all records from \'{table_name}\' table: {datetime.now()}\n')
+
+
+def get_telegram_user_from_db(chat_id: int):
+    import sqlite3
+    conn: sqlite3.Connection = db.get_conn()
+    
+    with Database.lock:
+        user = conn.execute(
+            "SELECT * FROM telegram_users WHERE chat_id = ?",
+            (chat_id,)
+        ).fetchall()
+    
+    return user
+
+def create_new_user_in_db(chat_id: int, username: str):
+    import sqlite3
+    conn: sqlite3.Connection = db.get_conn()
+    
+    with Database.lock:
+        conn.execute(
+            "INSERT INTO telegram_users (chat_id) VALUES (?)",
+            (chat_id,)
+        )

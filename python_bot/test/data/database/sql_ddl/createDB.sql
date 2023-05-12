@@ -22,3 +22,20 @@ CREATE TABLE fuel_prices (
     ) NOT NULL,
     prezzoSelf REAL NOT NULL
 );
+
+DROP TABLE IF EXISTS cars;
+CREATE TABLE cars (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,    
+    tipo_carburante TEXT CHECK(
+        tipo_carburante IN ('BENZINA', 'GASOLIO', 'GPL')
+    ),
+    consumo_km_per_lt REAL,
+    capacita_sebatoio INTEGER
+);
+
+DROP TABLE IF EXISTS telegram_users;
+CREATE TABLE telegram_users (
+    chat_id INTEGER PRIMARY KEY NOT NULL,
+    username TEXT CHECK(length(username) <= 255),
+    car_id INTEGER REFERENCES cars(id) ON UPDATE CASCADE ON DELETE SET NULL    
+);

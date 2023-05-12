@@ -83,9 +83,11 @@ class TelegramMessage:
             "reply_markup")) if message.get("reply_markup") else None
 
     def has_a_command(self):
-        for entity in self.entities.entities:
-            if entity.type == "bot_command":
-                return True
+        if self.entities is not None and len(self.entities.entities) > 0:
+            for entity in self.entities.entities:
+                if entity.type == "bot_command":
+                    return True
+        return False
 
     def get_command(self) -> str:
         if self.text is not None and self.text != "":
@@ -179,24 +181,36 @@ class Telegram:
 
             sleep(1)
 
-    def handle_next_message(self, chat_id: int):
+    def handle_next_message(self, chat_id: int, one_shot: bool = True):
         def decorator(func):
             # salvo l'id della chat e la keybord che gli è stata inviata
-            self.callbacks_next_message_handlers[chat_id] = func
+            self.callbacks_next_message_handlers[chat_id] = {
+                "func": func, "one_shot": one_shot}  # salvo la func
             return func
         return decorator
 
-    def handle_callback_query(self, chat_id, InlineKeyboardMarkup: InlineKeyboardMarkup):
+    def handle_callback_query(self, chat_id, InlineKeyboardMarkup: InlineKeyboardMarkup, one_shot: bool = True):
         """Add an handler for a callback query"""
         def decorator(func):
             self.callbacks_query_handlers[chat_id] = {
-                "func": func, "InlineKeyboardMarkup": InlineKeyboardMarkup}  # salvo l'id della chat e la keybord che gli è stata inviata
+                "func": func, "InlineKeyboardMarkup": InlineKeyboardMarkup, "one_shot": one_shot}  # salvo l'id della chat e la keybord che gli è stata inviata
             return func
         return decorator
 
     def _handler_dispatcher(self, update_message: TelegramUpdate):
+
         if update_message.is_a_message():  # se è un messaggio
-            if update_message.message.has_a_command():  # se la richiesta è un comando
+
+            if self.callbacks_next_message_handlers.get(update_message.message.chat.id) is not None:
+                func = self.callbacks_next_message_handlers.get(
+                    update_message.message.chat.id)["func"]
+                one_shot = self.callbacks_next_message_handlers.get(
+                    update_message.message.chat.id)["one_shot"]
+
+                threading.Thread(target=self.next_message_handler_wrapper, args=(
+                    func, update_message.message, one_shot)).start()
+
+            elif update_message.message.has_a_command():  # se la richiesta è un comando
                 command = update_message.message.get_command()  # salvo il comando
                 # se è presente un handler che gestisce il comando
                 # prendo la funzione dal dizionario dei gestori
@@ -215,6 +229,7 @@ class Telegram:
                 update_message.callback_query.message.chat.id)
             if handler_dict is not None:
                 func = handler_dict["func"]
+                one_shot = handler_dict["one_shot"]
                 inlineKeyboardMarkup: InlineKeyboardMarkup = handler_dict["InlineKeyboardMarkup"]
                 for inline_keyboard_row in inlineKeyboardMarkup.inline_keyboard:
                     for inline_button in inline_keyboard_row:
@@ -239,12 +254,6 @@ class Telegram:
             self._server_polling()
         else:
             self.server_thread.start()
-
-    # def send_text_message(self, chat_id, text=None):
-    #     url = self.url + "sendMessage"
-    #     data = {"chat_id": chat_id, "text": text}
-    #     response = requests.post(url, json=data)
-    #     return response.json()
 
     def send_response(self, response: TelegramResponse):
         headers = {"Content-Type": "application/json"}
@@ -273,10 +282,20 @@ class Telegram:
         if response is not None:
             self.send_response(response)
 
-    def callback_query_handler_wrapper(self, func, message: TelegramCallbackQuery):
+    def callback_query_handler_wrapper(self, func, message: TelegramCallbackQuery, one_shot=True):
         response: TelegramResponse = func(message)
         print("callback query handler")
         if response is not None:
             self.send_response(response)
         # elimino l'handler che è stato completato
-        del (self.callbacks_query_handlers[message.message.chat.id])
+        if one_shot:
+            del (self.callbacks_query_handlers[message.message.chat.id])
+
+    def next_message_handler_wrapper(self, func, message: TelegramMessage, one_shot=True):
+        response: TelegramResponse = func(message)
+        print("next message handler")
+        if response is not None:
+            self.send_response(response)
+
+        if one_shot:
+            del (self.callbacks_next_message_handlers[message.chat.id])
