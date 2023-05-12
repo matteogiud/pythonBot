@@ -165,6 +165,7 @@ class Telegram:
             self.server_thread = None
         self.commands_handlers = {}
         self.callbacks_query_handlers = {}
+        self.callbacks_next_message_handlers = {}
         self.update_offset = None
         self.debug = False
 
@@ -177,6 +178,13 @@ class Telegram:
                 print("UPDATE: ", update, "\r\n")
 
             sleep(1)
+
+    def handle_next_message(self, chat_id: int):
+        def decorator(func):
+            # salvo l'id della chat e la keybord che gli è stata inviata
+            self.callbacks_next_message_handlers[chat_id] = func
+            return func
+        return decorator
 
     def handle_callback_query(self, chat_id, InlineKeyboardMarkup: InlineKeyboardMarkup):
         """Add an handler for a callback query"""
@@ -212,7 +220,7 @@ class Telegram:
                     for inline_button in inline_keyboard_row:
                         if inline_button.callback_data == update_message.callback_query.data:
                             threading.Thread(target=self.callback_query_handler_wrapper, args=(
-                                func, update_message.callback_query)).start() # eseguo un thread che fa partire una funzione passata come funzione e la TelegramCallbackQuery
+                                func, update_message.callback_query)).start()  # eseguo un thread che fa partire una funzione passata come funzione e la TelegramCallbackQuery
                             break
 
         self.update_offset = update_message.update_id + 1
