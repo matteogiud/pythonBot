@@ -2,6 +2,32 @@ from .telegram import *
 from .telegram_models.telegram_users import DbTelgramUser
 
 
+def get_inline_keyboard_set_command(user) -> InlineKeyboardMarkup:
+    """user must be DbTelgramUser or user id"""
+    GREEN_FLAG = "\U00002705"
+    RED_CROSS = "\U0000274C"
+    
+    
+    
+    if isinstance(user, int):
+        user = DbTelgramUser.get_by_id(user)
+        
+    if user is None or not isinstance(user, DbTelgramUser):
+        return
+
+    btnSetFuel = InlineKeyboardButton(
+        text=((RED_CROSS if user.DbCar.fuel_type is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta il carburante", callback_data='setFuel')
+    btnSetCapacity = InlineKeyboardButton(
+        text=((RED_CROSS if user.DbCar.capacity is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta la capacità", callback_data='setCapacity')
+    btnSetConsume = InlineKeyboardButton(
+        text=((RED_CROSS if user.DbCar.consume is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta il consumo", callback_data='setConsume')
+    
+    
+    return InlineKeyboardMarkup([[btnSetFuel], [btnSetCapacity], [btnSetConsume]])
+
+
+
+
 def define_bot_handling(bot: Telegram):
 
     GREEN_FLAG = "\U00002705"
@@ -20,16 +46,7 @@ def define_bot_handling(bot: Telegram):
                 message.chat.id, message.chat.username)  # creo l'utente
             text = f"Benvenuto {message.chat.username}!"
 
-        btnSetFuel = InlineKeyboardButton(
-            text=((RED_CROSS if user.DbCar.fuel_type is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta il carburante", callback_data='setFuel')
-        btnSetCapacity = InlineKeyboardButton(
-            text=((RED_CROSS if user.DbCar.capacity is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta la capacità", callback_data='setCapacity')
-        btnSetConsume = InlineKeyboardButton(
-            text=((RED_CROSS if user.DbCar.consume is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta il consumo", callback_data='setConsume')
-
-        keyboard = InlineKeyboardMarkup(
-            [[btnSetFuel], [btnSetCapacity], [btnSetConsume]]
-        )
+        keyboard = get_inline_keyboard_set_command(user)
 
         @bot.handle_callback_query(message.chat.id, keyboard)
         def send_to_relative_command(callback_query: TelegramCallbackQuery):
@@ -85,6 +102,8 @@ def define_bot_handling(bot: Telegram):
             except:
                 text = "Errore!"
 
+            # TODO SEND KEYBOARD WHEN SET FUEL
+            
             response = TelegramResponse(
                 callback_query.message.chat.id, text)
             return response
@@ -92,7 +111,7 @@ def define_bot_handling(bot: Telegram):
         return response
 
     @bot.handle_command("/setCapacity")
-    def handle_set_fuel_command(message: TelegramMessage):
+    def handle_set_capacity_command(message: TelegramMessage):
 
         text = "Invia la capacità del serbatoio della tua auto"
 
@@ -123,7 +142,7 @@ def define_bot_handling(bot: Telegram):
         return response
 
     @bot.handle_command("/setConsume")
-    def handle_set_fuel_command(message: TelegramMessage):
+    def handle_set_consume_command(message: TelegramMessage):
 
         text = "Invia il consumo medio della tua auto"
 

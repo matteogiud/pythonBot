@@ -16,15 +16,15 @@ class DbCar:
         return False
     
     def set_capacity(self, capacity):
-        if capacity > 0:
+        if int(capacity) > 0:
             if set_capacity_in_db(self.car_id, capacity) is not None:
                 self.capacity = capacity
                 return True
         return False
     
     def set_consume(self, consume):
-        if consume > 0:
-            if set_capacity_in_db(self.car_id, consume) is not None:
+        if int(consume) > 0:
+            if set_consume_in_db(self.car_id, consume) is not None:
                 self.capacity = consume
                 return True
         return False
