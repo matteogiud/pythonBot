@@ -2,17 +2,20 @@ import requests
 import threading
 import json
 from time import sleep
+from copy import deepcopy
 
 
 class InlineKeyboardButton:
-    def __init__(self, text, callback_data):
+    def __init__(self, text, callback_data, request_location=False):
         self.text = text
         self.callback_data = callback_data
+        self.request_location = request_location
 
 
 class InlineKeyboardMarkup:
     def __init__(self, inline_keyboard):
         self.inline_keyboard = inline_keyboard
+
 
     def serialize_markup(self):
         serialized_buttons = []
@@ -58,13 +61,18 @@ class TelegramChat:
 class TelegramReplyMarkup:
 
     def __init__(self, reply_markup: dict):
-        inline_keyboard_buttons = reply_markup.get(
+        inline_keyboard_markup = []
+        inline_keyboard_rows = reply_markup.get(
             "inline_keyboard", [])
-        if len(inline_keyboard_buttons) > 0:
-            self.inline_keyboard_buttons = [InlineKeyboardButton(
-                text=button["text"], callback_data=button["callback_data"]) for button in inline_keyboard_buttons[0]]
+        if len(inline_keyboard_rows) > 0:
+            for inline_keyboard_row in inline_keyboard_rows:
+                inline_keyboard_markup.append([InlineKeyboardButton(
+                    text=button["text"], callback_data=button["callback_data"]) for button in inline_keyboard_row])  # per ogni riga, aggiunge un vettore di inline keyboard button
+        if len(inline_keyboard_markup) > 0:
+            self.inline_keyboard_markup = InlineKeyboardMarkup(
+                inline_keyboard_markup)
         else:
-            self.inline_keyboard_buttons = []
+            self.inline_keyboard_markup = None
 
 
 class TelegramMessage:
@@ -289,7 +297,13 @@ class Telegram:
             self.send_response(response)
         # elimino l'handler che è stato completato
         if one_shot:
-            del (self.callbacks_query_handlers[message.message.chat.id])
+            inlineKeyboard = self.callbacks_query_handlers[
+                message.message.chat.id]["InlineKeyboardMarkup"].inline_keyboard
+
+            if deepcopy(inlineKeyboard) == deepcopy(message.message.reply_markup.inline_keyboard_markup.inline_keyboard):
+                del (self.callbacks_query_handlers[message.message.chat.id])
+            else:
+                print("skip")
 
     def next_message_handler_wrapper(self, func, message: TelegramMessage, one_shot=True):
         response: TelegramResponse = func(message)

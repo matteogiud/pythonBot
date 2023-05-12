@@ -13,6 +13,6 @@ update_db_thread.start()
 my_telegram_token = "5783533607:AAE-4_vA8BZn5PGRjBvREylshRCyt42nRBY"
 bot = Telegram(my_telegram_token, is_async=True)
 
-define_bot_handling(bot)    
+define_bot_handling(bot)  
 
 bot.start_server(debug=True)

@@ -7,6 +7,27 @@ class DbCar:
         self.fuel_type = fuel_type
         self.capacity = capacity
         self.consume = consume
+        
+    def set_fuel_type(self, fuel_type):
+        if fuel_type in ("BENZINA", "GASOLIO", "GPL"):
+            if set_fuel_type_in_db(self.car_id, fuel_type) is not None:
+                self.fuel_type = fuel_type
+                return True        
+        return False
+    
+    def set_capacity(self, capacity):
+        if capacity > 0:
+            if set_capacity_in_db(self.car_id, capacity) is not None:
+                self.capacity = capacity
+                return True
+        return False
+    
+    def set_consume(self, consume):
+        if consume > 0:
+            if set_capacity_in_db(self.car_id, consume) is not None:
+                self.capacity = consume
+                return True
+        return False
 
 
 class DbTelgramUser:
@@ -15,14 +36,27 @@ class DbTelgramUser:
         self.username = username
         self.DbCar = DbCar
 
+    def create_new_car(self):
+        db_car_id = create_new_car_in_db(self.chat_id)
+        if db_car_id is not None:
+            self.DbCar = DbCar(db_car_id, None, None, None)
+            
+
+        
+
     @staticmethod
     def get_by_chat_id(chat_id: int):
         db_user = get_telegram_user_from_db(chat_id)
         if (len(db_user) == 1):
-            return DbTelgramUser(chat_id, db_user.username)
+            if(db_user[0]['car_id'] is not None):
+                return DbTelgramUser(chat_id, db_user[0]['username'], DbCar(db_user[0]['car_id'], db_user[0]['tipo_carburante'], db_user[0]['capacita_serbatoio'], db_user[0]['consumo_km_per_lt']))
+            else:
+                return DbTelgramUser(chat_id, db_user[0]['username'])
         return None
 
     @staticmethod
     def get_new_user(chat_id: int, username: str):
-        db_user = create_new_user_in_db(chat_id, username)
-        return DbTelgramUser(chat_id, None)
+        if create_new_user_in_db(chat_id, username):
+            return DbTelgramUser(chat_id, username)
+        else:
+            return None

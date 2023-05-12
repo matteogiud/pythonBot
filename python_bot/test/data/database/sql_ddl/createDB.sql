@@ -30,7 +30,7 @@ CREATE TABLE cars (
         tipo_carburante IN ('BENZINA', 'GASOLIO', 'GPL')
     ),
     consumo_km_per_lt REAL,
-    capacita_sebatoio INTEGER
+    capacita_serbatoio INTEGER
 );
 
 DROP TABLE IF EXISTS telegram_users;
