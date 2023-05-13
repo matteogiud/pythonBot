@@ -2,32 +2,83 @@ import requests
 import threading
 import json
 from time import sleep
-from copy import deepcopy
+import uuid
 
 
-class InlineKeyboardButton:
-    def __init__(self, text, callback_data, request_location=False):
+class MarkupObject:
+    def serialize_markup(self):
+        pass
+
+
+class TelegramCustomButton:
+    def __init__(self, text, request_location=False):
+        self.text = text
+        self.request_location = request_location
+
+    def serialize_button(self):
+        return {
+            'text': self.text,
+            'request_location': self.request_location
+        }
+
+
+class TelegramCustomKeyboard(MarkupObject):
+    def __init__(self, custom_keyboard: list[list[TelegramCustomButton]], resize_keyboard=True, one_time_keyboard=False):
+        self.custom_keyboard = custom_keyboard
+        self.resize_keyboard = resize_keyboard
+        self.one_time_keyboard = one_time_keyboard
+
+    def serialize_markup(self):
+        serialized_buttons = []
+        for row in self.custom_keyboard:
+            serialized_row = []
+            for button in row:
+                serialized_row.append(button.serialize_button())
+            serialized_buttons.append(serialized_row)
+
+        return {'keyboard': serialized_buttons,  'one_time_keyboard': self.one_time_keyboard, 'resize_keyboard': self.resize_keyboard}
+
+
+class TelegramInlineKeyboardButton(MarkupObject):
+    def __init__(self, text="", callback_data="", request_location=False):
         self.text = text
         self.callback_data = callback_data
         self.request_location = request_location
 
+    def serialize_button(self):
+        return {
+            'text': self.text,
+            'callback_data': self.callback_data
+        }
 
-class InlineKeyboardMarkup:
+
+class TelegramInlineKeyboardMarkup:
     def __init__(self, inline_keyboard):
         self.inline_keyboard = inline_keyboard
-
 
     def serialize_markup(self):
         serialized_buttons = []
         for row in self.inline_keyboard:
             serialized_row = []
             for button in row:
-                serialized_row.append({'text': button.text,
-                                       'callback_data': button.callback_data
-                                       })
+                serialized_row.append(button.serialize_button())
             serialized_buttons.append(serialized_row)
 
         return {'inline_keyboard': serialized_buttons}
+
+    @staticmethod
+    def are_inline_keyboard_equal(keyboard1: list[list], keyboard2: list[list]):
+        if len(keyboard1) != len(keyboard2):
+            return False
+        for row1, row2 in zip(keyboard1, keyboard2):
+            if len(row1) != len(row2):
+                return False
+            for button1, button2 in zip(row1, row2):
+                if button1.text != button2.text:
+                    return False
+                if button1.callback_data != button2.callback_data:
+                    return False
+        return True
 
 
 class TelegramEntity:
@@ -66,13 +117,27 @@ class TelegramReplyMarkup:
             "inline_keyboard", [])
         if len(inline_keyboard_rows) > 0:
             for inline_keyboard_row in inline_keyboard_rows:
-                inline_keyboard_markup.append([InlineKeyboardButton(
+                inline_keyboard_markup.append([TelegramInlineKeyboardButton(
                     text=button["text"], callback_data=button["callback_data"]) for button in inline_keyboard_row])  # per ogni riga, aggiunge un vettore di inline keyboard button
         if len(inline_keyboard_markup) > 0:
-            self.inline_keyboard_markup = InlineKeyboardMarkup(
+            self.inline_keyboard_markup = TelegramInlineKeyboardMarkup(
                 inline_keyboard_markup)
         else:
             self.inline_keyboard_markup = None
+
+
+class TelegramLocation:
+    def __init__(self, location: dict):
+        self.latitude = location.get(
+            "latitude") if location.get("latitude") else None
+        self.longitude = location.get(
+            "longitude") if location.get("longitude") else None
+
+    def serialize_location(self):
+        return {
+            'latitude': self.latitude,
+            'longitude': self.longitude
+        }
 
 
 class TelegramMessage:
@@ -89,6 +154,8 @@ class TelegramMessage:
         self.text = message.get("text") if message.get("text") else None
         self.reply_markup = TelegramReplyMarkup(message.get(
             "reply_markup")) if message.get("reply_markup") else None
+        self.location = TelegramLocation(message.get(
+            "location")) if message.get("location") else None
 
     def has_a_command(self):
         if self.entities is not None and len(self.entities.entities) > 0:
@@ -149,7 +216,7 @@ class TelegramUpdate:  # il messaggio generale che arriva da un utente
 
 
 class TelegramResponse:
-    def __init__(self, chat_id: int, text: str, reply_markup: InlineKeyboardMarkup = None):
+    def __init__(self, chat_id: int, text: str, reply_markup: TelegramInlineKeyboardMarkup = None):
         self.chat_id = chat_id
         self.text = text
         self.reply_markup = reply_markup
@@ -193,15 +260,15 @@ class Telegram:
         def decorator(func):
             # salvo l'id della chat e la keybord che gli è stata inviata
             self.callbacks_next_message_handlers[chat_id] = {
-                "func": func, "one_shot": one_shot}  # salvo la func
+                "func": func, "one_shot": one_shot, "id": str(uuid.uuid1())}  # salvo la func
             return func
         return decorator
 
-    def handle_callback_query(self, chat_id, InlineKeyboardMarkup: InlineKeyboardMarkup, one_shot: bool = True):
+    def handle_callback_query(self, chat_id, InlineKeyboardMarkup: TelegramInlineKeyboardMarkup, one_shot: bool = True):
         """Add an handler for a callback query"""
         def decorator(func):
             self.callbacks_query_handlers[chat_id] = {
-                "func": func, "InlineKeyboardMarkup": InlineKeyboardMarkup, "one_shot": one_shot}  # salvo l'id della chat e la keybord che gli è stata inviata
+                "func": func, "InlineKeyboardMarkup": InlineKeyboardMarkup, "one_shot": one_shot, "id": str(uuid.uuid1())}  # salvo l'id della chat e la keybord che gli è stata inviata
             return func
         return decorator
 
@@ -214,9 +281,11 @@ class Telegram:
                     update_message.message.chat.id)["func"]
                 one_shot = self.callbacks_next_message_handlers.get(
                     update_message.message.chat.id)["one_shot"]
+                id = self.callbacks_next_message_handlers.get(
+                    update_message.message.chat.id)["id"]
 
                 threading.Thread(target=self.next_message_handler_wrapper, args=(
-                    func, update_message.message, one_shot)).start()
+                    func, update_message.message, one_shot, id)).start()
 
             elif update_message.message.has_a_command():  # se la richiesta è un comando
                 command = update_message.message.get_command()  # salvo il comando
@@ -238,12 +307,14 @@ class Telegram:
             if handler_dict is not None:
                 func = handler_dict["func"]
                 one_shot = handler_dict["one_shot"]
-                inlineKeyboardMarkup: InlineKeyboardMarkup = handler_dict["InlineKeyboardMarkup"]
+                inlineKeyboardMarkup: TelegramInlineKeyboardMarkup = handler_dict[
+                    "InlineKeyboardMarkup"]
+                id = handler_dict["id"]
                 for inline_keyboard_row in inlineKeyboardMarkup.inline_keyboard:
                     for inline_button in inline_keyboard_row:
                         if inline_button.callback_data == update_message.callback_query.data:
                             threading.Thread(target=self.callback_query_handler_wrapper, args=(
-                                func, update_message.callback_query)).start()  # eseguo un thread che fa partire una funzione passata come funzione e la TelegramCallbackQuery
+                                func, update_message.callback_query, one_shot, id)).start()  # eseguo un thread che fa partire una funzione passata come funzione e la TelegramCallbackQuery
                             break
 
         self.update_offset = update_message.update_id + 1
@@ -290,7 +361,8 @@ class Telegram:
         if response is not None:
             self.send_response(response)
 
-    def callback_query_handler_wrapper(self, func, message: TelegramCallbackQuery, one_shot=True):
+    def callback_query_handler_wrapper(self, func, message: TelegramCallbackQuery, one_shot=True, id=""):
+        import collections
         response: TelegramResponse = func(message)
         print("callback query handler")
         if response is not None:
@@ -299,17 +371,31 @@ class Telegram:
         if one_shot:
             inlineKeyboard = self.callbacks_query_handlers[
                 message.message.chat.id]["InlineKeyboardMarkup"].inline_keyboard
-
-            if deepcopy(inlineKeyboard) == deepcopy(message.message.reply_markup.inline_keyboard_markup.inline_keyboard):
+            # if TelegramInlineKeyboardMarkup.are_inline_keyboard_equal(inlineKeyboard, message.message.reply_markup.inline_keyboard_markup.inline_keyboard):
+            if id == self.callbacks_query_handlers[message.message.chat.id]["id"]:
                 del (self.callbacks_query_handlers[message.message.chat.id])
-            else:
-                print("skip")
 
-    def next_message_handler_wrapper(self, func, message: TelegramMessage, one_shot=True):
+    def next_message_handler_wrapper(self, func, message: TelegramMessage, one_shot=True, id=""):
         response: TelegramResponse = func(message)
         print("next message handler")
         if response is not None:
             self.send_response(response)
 
         if one_shot:
-            del (self.callbacks_next_message_handlers[message.chat.id])
+            if id == self.callbacks_next_message_handlers[message.chat.id]["id"]:
+                del (self.callbacks_next_message_handlers[message.chat.id])
+
+    def send_location(self, chat_id: int, location: TelegramLocation, title=None, disable_notification=None, reply_to_message_id=None):
+        headers = {"Content-Type": "application/json"}
+        url = self.url + "sendLocation"
+
+        location_payload = {"chat_id": chat_id, "latitude": location.latitude,
+                            "longitude": location.longitude, "disable_notification": disable_notification, "reply_to_message_id": reply_to_message_id}
+        print("payload location", location_payload)
+        if title is not None:
+            requests.post(self.url + "sendMessage", headers=headers, data=json.dumps(
+                {"chat_id": chat_id, "text": '\r\n' + title}
+            ))
+        result = requests.post(url, headers=headers,
+                               data=json.dumps(location_payload))
+        print(result.json())

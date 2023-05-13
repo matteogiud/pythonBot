@@ -1,31 +1,27 @@
 from .telegram import *
-from .telegram_models.telegram_users import DbTelgramUser
+from .models.telegram_users import DbTelgramUser
+from .models.gas_stations import DbGasStation
 
 
-def get_inline_keyboard_set_command(user) -> InlineKeyboardMarkup:
+def get_inline_keyboard_set_command(user) -> TelegramInlineKeyboardMarkup:
     """user must be DbTelgramUser or user id"""
     GREEN_FLAG = "\U00002705"
     RED_CROSS = "\U0000274C"
-    
-    
-    
+
     if isinstance(user, int):
         user = DbTelgramUser.get_by_id(user)
-        
+
     if user is None or not isinstance(user, DbTelgramUser):
         return
 
-    btnSetFuel = InlineKeyboardButton(
+    btnSetFuel = TelegramInlineKeyboardButton(
         text=((RED_CROSS if user.DbCar.fuel_type is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta il carburante", callback_data='setFuel')
-    btnSetCapacity = InlineKeyboardButton(
+    btnSetCapacity = TelegramInlineKeyboardButton(
         text=((RED_CROSS if user.DbCar.capacity is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta la capacità", callback_data='setCapacity')
-    btnSetConsume = InlineKeyboardButton(
+    btnSetConsume = TelegramInlineKeyboardButton(
         text=((RED_CROSS if user.DbCar.consume is None else GREEN_FLAG) if user.DbCar is not None else RED_CROSS) + " Imposta il consumo", callback_data='setConsume')
-    
-    
-    return InlineKeyboardMarkup([[btnSetFuel], [btnSetCapacity], [btnSetConsume]])
 
-
+    return TelegramInlineKeyboardMarkup([[btnSetFuel], [btnSetCapacity], [btnSetConsume]])
 
 
 def define_bot_handling(bot: Telegram):
@@ -68,17 +64,17 @@ def define_bot_handling(bot: Telegram):
 
         return response
 
-    @bot.handle_command("/setFuel")
+    @bot.handle_command("/setfuel")
     def handle_set_fuel_command(message: TelegramMessage):
 
         text = "Scegli il tipo di carburante \U000026FD"
 
-        button_benzina = InlineKeyboardButton(
+        button_benzina = TelegramInlineKeyboardButton(
             "BENZINA", callback_data='BENZINA')
-        button_diesel = InlineKeyboardButton(
+        button_diesel = TelegramInlineKeyboardButton(
             "GASOLIO", callback_data='GASOLIO')
-        button_gpl = InlineKeyboardButton("GPL", callback_data='GPL')
-        keyboard = InlineKeyboardMarkup(
+        button_gpl = TelegramInlineKeyboardButton("GPL", callback_data='GPL')
+        keyboard = TelegramInlineKeyboardMarkup(
             [[button_benzina, button_diesel, button_gpl]])
 
         response: TelegramResponse = TelegramResponse(
@@ -103,14 +99,14 @@ def define_bot_handling(bot: Telegram):
                 text = "Errore!"
 
             # TODO SEND KEYBOARD WHEN SET FUEL
-            
+
             response = TelegramResponse(
                 callback_query.message.chat.id, text)
             return response
 
         return response
 
-    @bot.handle_command("/setCapacity")
+    @bot.handle_command("/setcapacity")
     def handle_set_capacity_command(message: TelegramMessage):
 
         text = "Invia la capacità del serbatoio della tua auto"
@@ -141,7 +137,7 @@ def define_bot_handling(bot: Telegram):
 
         return response
 
-    @bot.handle_command("/setConsume")
+    @bot.handle_command("/setconsume")
     def handle_set_consume_command(message: TelegramMessage):
 
         text = "Invia il consumo medio della tua auto"
@@ -171,3 +167,79 @@ def define_bot_handling(bot: Telegram):
             return response
 
         return response
+
+    @bot.handle_command("/getgasstation")
+    def handle_get_gasstation_command(message: TelegramMessage):
+        text = "Scegli il risultato che vuoi visualizzare"
+        keyboard = None
+
+        if message.location is None:
+            text = "Condividimi la tua posizione attuale per continuare..."
+            request_position_telegram = TelegramCustomButton(
+                text=text, request_location=True)
+            keyboard = TelegramCustomKeyboard(
+                [[request_position_telegram]], resize_keyboard=False, one_time_keyboard=True)
+
+            @bot.handle_next_message(message.chat.id)
+            def check_location_callback_message(callback_message: TelegramMessage):
+                return handle_get_gasstation_command(callback_message)
+
+        else:  # quando la posizione mi è stata fornita
+
+            btn_closer_results = TelegramInlineKeyboardButton(
+                text="Più Vicini", callback_data='closer_results')
+            btn_cheaper_results = TelegramInlineKeyboardButton(
+                text="Più Convenienti", callback_data="cheaper_results")
+            keyboard = TelegramInlineKeyboardMarkup(
+                [[btn_closer_results], [btn_cheaper_results]]
+            )
+
+            @bot.handle_callback_query(message.chat.id, keyboard)
+            def calculate_result(callback_query: TelegramCallbackQuery):
+
+                if callback_query.data == "closer_results":
+                    stations = DbGasStation.get_closer_gas_stations(
+                        message.location.latitude, message.location.longitude)
+                    for station in stations:
+                        bot.send_location(message.chat.id, location=TelegramLocation(
+                            {"latitude": station.latitudine, "longitude": station.longitudine}), title=station.nome_impianto)
+
+                    return
+                elif callback_query.data == "cheaper_results":
+                    callback_text = "Quanti litri di carburante devi fare?"
+
+                    @bot.handle_next_message(message.chat.id)
+                    def get_liters_callback_message(callback_message: TelegramMessage):
+                        try:
+
+                            if not callback_message.text.isdigit():
+                                raise Exception("Valore non valido")
+
+                            user = DbTelgramUser.get_by_chat_id(
+                                message.chat.id)
+
+                            liters = int(liters)
+                            if liters < 0 or liters > user.DbCar.capacity:
+                                raise Exception("Valore non valido")
+                                # valore valido
+                                
+                            bot.send_response(
+                                message.chat.id, "Sto calcolando i migliori benzinai nella tua zona...")
+                            
+                            stations = DbGasStation.get_cheaper_gas_stations()
+                            for station in stations:
+                                bot.send_location(message.chat.id, location=TelegramLocation(
+                                    {"latitude": station.latitudine, "longitude": station.longitudine}), title=station.nome_impianto)
+                            
+                            return
+
+                        except Exception as e:
+                            return TelegramResponse(message.chat.id, e)
+
+                    return TelegramResponse(message.chat.id, callback_text)
+                return
+
+        if keyboard:
+            return TelegramResponse(message.chat.id, text, reply_markup=keyboard)
+        else:
+            return TelegramResponse(message.chat.id, text)

@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Type
 import threading
+import math
 
 
 class Database:
@@ -44,6 +45,14 @@ class Database:
         try:
             print("Creating a database connection to a SQLite3 database")
             conn = sqlite3.connect(self.__db_name, check_same_thread=False)
+            
+            conn.create_function('SQRT', 1, math.sqrt)
+            conn.create_function('ASIN', 1, math.asin)
+            conn.create_function('POWER', 2, math.pow)
+            conn.create_function('COS', 1, math.cos)
+            conn.create_function('SIN', 1, math.sin)
+            conn.create_function('pi', 0, lambda: math.pi)
+            
             print('Connected')
             open(self.__db_file_log, mode='a').write(
                 'new connection: ' + str(datetime.now()) + '\n')

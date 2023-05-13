@@ -98,6 +98,30 @@ def create_new_car_in_db(chat_id: int):
     return int(new_car_id)
 
 
+def get_closer_gas_station_from_db(latitude: float, longitude: float):
+    import sqlite3
+    import math
+    
+    
+    conn: sqlite3.Connection = db.get_conn()            
+
+
+    
+
+    with Database.lock:
+        user_cursor = conn.execute(
+            "SELECT *, ROUND(2 * 6371 * ASIN( SQRT( POWER( SIN((? - abs(latitudine)) * pi() / 180 / 2), 2) + COS(? * pi() / 180) * COS(abs(latitudine) * pi() / 180) * POWER( SIN((? - longitudine) * pi() / 180 / 2), 2))), 2) AS distance FROM installations ORDER BY distance LIMIT 5",
+            (latitude, latitude, longitude)
+        )
+    rows = user_cursor.fetchall()
+
+    column_names = [description[0] for description in user_cursor.description]
+
+    installation = [dict(zip(column_names, row)) for row in rows]
+
+    return installation
+
+
 def set_fuel_type_in_db(car_id: int, fuel_type: str):
     import sqlite3
     conn: sqlite3.Connection = db.get_conn()
@@ -108,14 +132,14 @@ def set_fuel_type_in_db(car_id: int, fuel_type: str):
             (fuel_type, car_id)
         )
         conn.commit()
-        
+
     if res:
         if res.rowcount > 0:
             return True
-    
+
     return False
-        
-        
+
+
 def set_capacity_in_db(car_id: int, capacity: str):
     import sqlite3
     conn: sqlite3.Connection = db.get_conn()
@@ -126,7 +150,7 @@ def set_capacity_in_db(car_id: int, capacity: str):
             (capacity, car_id)
         )
         conn.commit()
-        
+
     if res:
         if res.rowcount > 0:
             return True
@@ -144,10 +168,9 @@ def set_consume_in_db(car_id: int, consume: str):
             (consume, car_id)
         )
         conn.commit()
-        
+
     if res:
         if res.rowcount > 0:
             return True
 
     return False
-    
