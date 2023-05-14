@@ -7,5 +7,9 @@
             "database": "${workspaceFolder:pythonBot}/python_bot/test/data/database/database.db"
         }
     ],
-    "sqltools.useNodeRuntime": true
+    "sqltools.useNodeRuntime": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
 }

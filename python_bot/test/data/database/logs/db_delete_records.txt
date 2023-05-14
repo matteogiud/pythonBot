@@ -12,3 +12,5 @@ Delete all records from 'installations' table: 2023-04-15 10:45:04.456381
 Delete all records from 'fuel_prices' table: 2023-04-15 10:45:04.481527
 Delete all records from 'installations' table: 2023-04-15 10:45:36.654694
 Delete all records from 'fuel_prices' table: 2023-04-15 10:45:36.686172
+Delete all records from 'installations' table: 2023-05-14 14:50:20.488077
+Delete all records from 'fuel_prices' table: 2023-05-14 14:50:21.081026

@@ -1,4 +1,4 @@
-from modules.data.dinamic.thread_routine_updates_database import get_thread, update_database
+from modules.data.dinamic.thread_routine_updates_database import get_thread
 from modules.telegram.telegram import *
 from modules.telegram.define_handling import define_bot_handling
 import time

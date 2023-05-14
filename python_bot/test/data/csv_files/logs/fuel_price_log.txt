@@ -6,3 +6,6 @@ Downloaded 'fuel_price.csv': 2023-04-15 10:42:21.292061
 Downloaded 'fuel_price.csv': 2023-04-15 10:44:07.930321
 Downloaded 'fuel_price.csv': 2023-04-15 10:44:40.811725
 Downloaded 'fuel_price.csv': 2023-04-15 10:45:23.718974
+Downloaded 'fuel_price.csv': 2023-05-14 12:47:32.342735
+Downloaded 'fuel_price.csv': 2023-05-14 14:38:24.808837
+Downloaded 'fuel_price.csv': 2023-05-14 14:46:01.547482
