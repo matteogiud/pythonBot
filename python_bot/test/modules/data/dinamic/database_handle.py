@@ -2,12 +2,12 @@
 import sys
 import os
 
-sys.path.append(
-    os.path.abspath(
-        os.path.join("..", "pythonBot\\python_bot\\test\\modules\\data\\static\\")
-    )
-)
-from dataset import Database  # errore
+# sys.path.append(
+#     os.path.abspath(
+#         os.path.join("..", "pythonBot\\python_bot\\test\\modules\\data\\static\\")
+#     )
+# )
+from ..static.dataset import Database # errore
 
 global db
 db = Database.getInstance()

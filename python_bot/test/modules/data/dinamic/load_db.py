@@ -1,5 +1,5 @@
 global downloading_folder
-downloading_folder = "python_bot\\test\\data\\csv_files\\"
+downloading_folder = "test\\data\\csv_files\\"
 
 
 def download_files_from_internet():
@@ -11,9 +11,9 @@ def download_files_from_internet():
         "https://www.mise.gov.it/images/exportCSV/anagrafica_impianti_attivi.csv"
     )
 
-    __fuel_price_log = "python_bot\\test\\data\\csv_files\\logs\\fuel_price_log.txt"
+    __fuel_price_log = "test\\data\\csv_files\\logs\\fuel_price_log.txt"
     __installations_log = (
-        "python_bot\\test\\data\\csv_files\\logs\\installations_log.txt"
+        "test\\data\\csv_files\\logs\\installations_log.txt"
     )
 
     response = requests.get(fuel_price_link)
@@ -38,18 +38,18 @@ def load_db_from_local_files(delete_table_first=True):
     import os
     from datetime import datetime
 
-    sys.path.append(
-        os.path.abspath(
-            os.path.join("..", "pythonBot\\python_bot\\test\\modules\\data\\static\\")
-        )
-    )
-    from csv_parser import parse_dict
+    # sys.path.append(
+    #     os.path.abspath(
+    #         os.path.join("..", "pythonBot\\python_bot\\test\\modules\\data\\static\\")
+    #     )
+    # )
+    from ..static.csv_parser import parse_dict
 
     from database_handle import execute_insert_dict, delete_all_records_from_table
 
-    __db_fuel_price_log = "python_bot\\test\\data\\database\\logs\\db_fuel_price.txt"
+    __db_fuel_price_log = "test\\data\\database\\logs\\db_fuel_price.txt"
     __db_installations_log = (
-        "python_bot\\test\\data\\database\\logs\\db_installations.txt"
+        "test\\data\\database\\logs\\db_installations.txt"
     )
 
     fuel_price_dict = parse_dict(f"{downloading_folder}fuel_price.csv", no_first=1)

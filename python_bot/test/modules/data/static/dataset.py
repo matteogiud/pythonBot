@@ -4,12 +4,12 @@ import threading
 import math
 import os
 import sys
-sys.path.append(
-    os.path.abspath(
-        os.path.join("..", "pythonBot\\python_bot\\test\\modules\\telegram\\")
-    )
-)
-from open_route_service import get_route_distance
+# sys.path.append(
+#     os.path.abspath(
+#         os.path.join("..", "pythonBot\\python_bot\\test\\modules\\telegram\\")
+#     )
+# )
+from ...telegram.open_route_service import get_route_distance
 
 
 def cheap_ratio(route_distance: float, prezzo_self: float, lt_to_do: int, avg_consume: float) -> float:
@@ -25,8 +25,8 @@ def cheap_ratio(route_distance: float, prezzo_self: float, lt_to_do: int, avg_co
 class Database:
     __instance = None
     lock = threading.Lock()
-    __db_name = "python_bot\\test\\data\\database\\database.db"
-    __db_file_log = "python_bot\\test\\data\\database\\logs\\db_log.txt"
+    __db_name = "test\\data\\database\\database.db"
+    __db_file_log = "test\\data\\database\\logs\\db_log.txt"
 
     @staticmethod
     def getInstance() -> Type["Database"]:

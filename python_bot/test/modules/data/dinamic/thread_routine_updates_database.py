@@ -4,12 +4,12 @@ import time
 
 import sys, os
 
-sys.path.append(
-    os.path.abspath(
-        os.path.join("..", "pythonBot\\python_bot\\test\\modules\\data\\dinamic\\")
-    )
-)
-from load_db import (
+# sys.path.append(
+#     os.path.abspath(
+#         os.path.join("..", "pythonBot\\python_bot\\test\\modules\\data\\dinamic\\")
+#     )
+# )
+from .load_db import (
     download_files_from_internet,
     load_db_from_local_files,
     check_csv_updated,
